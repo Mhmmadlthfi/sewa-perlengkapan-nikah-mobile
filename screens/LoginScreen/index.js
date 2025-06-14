@@ -16,7 +16,6 @@ import {
 import api from "../../services/api";
 import { AuthContext } from "../../contexts/AuthContext";
 import { Logo, EyeOpen, EyeClosed } from "../../assets";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
@@ -57,7 +56,7 @@ export default function LoginScreen({ navigation }) {
     try {
       const response = await api.post("/login", { email, password });
       await login(response.data.user, response.data.token);
-      navigation.replace("Home");
+      navigation.replace("MainTabs");
     } catch (error) {
       Alert.alert(
         "Login Gagal",
@@ -70,10 +69,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <LinearGradient
-        colors={["#f5f7ff", "#e8ecff", "#dce2ff"]}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
@@ -155,7 +151,7 @@ export default function LoginScreen({ navigation }) {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
+      </View>
     </TouchableWithoutFeedback>
   );
 }

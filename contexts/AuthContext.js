@@ -7,6 +7,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadToken = async () => {
@@ -15,16 +16,17 @@ export const AuthProvider = ({ children }) => {
         if (storedToken) {
           setToken(storedToken);
           const response = await api.get("/user", {
-            headers: {
-              Authorization: `Bearer ${storedToken}`,
-            },
+            headers: { Authorization: `Bearer ${storedToken}` },
           });
           setUser(response.data.data);
         }
       } catch (error) {
         console.error("Gagal memuat token", error);
+      } finally {
+        setIsLoading(false);
       }
     };
+
     loadToken();
   }, []);
 
@@ -47,8 +49,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Development
+  const clearTokens = async () => {
+    try {
+      await AsyncStorage.clear();
+      console.log("AsyncStorage cleared completely");
+    } catch (error) {
+      console.error("Clear storage error:", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isLoading,
+        login,
+        logout,
+        clearTokens,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

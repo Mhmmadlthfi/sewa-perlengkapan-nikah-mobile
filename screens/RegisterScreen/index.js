@@ -13,7 +13,6 @@ import {
   Keyboard,
   Image,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import api from "../../services/api";
 import { Logo, EyeOpen, EyeClosed } from "../../assets";
 
@@ -35,7 +34,6 @@ export default function RegisterScreen({ navigation }) {
   });
 
   const handleRegister = async () => {
-    // Validasi input
     let newErrors = {
       name: "",
       email: "",
@@ -107,10 +105,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <LinearGradient
-        colors={["#f5f7ff", "#e8ecff", "#dce2ff"]}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
@@ -222,7 +217,7 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
@@ -230,6 +225,7 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f7ff",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -287,7 +283,7 @@ const styles = StyleSheet.create({
   loginContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: 10,
   },
   loginText: {
     color: "#666",

@@ -2,34 +2,37 @@ import { useEffect, useContext } from "react";
 import { View, Text, ActivityIndicator, StyleSheet, Image } from "react-native";
 import { AuthContext } from "../../contexts/AuthContext";
 import { Logo } from "../../assets";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function SplashScreen({ navigation }) {
-  const { user } = useContext(AuthContext);
+  const { user, isLoading } = useContext(AuthContext);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (user) {
-        navigation.replace("Home");
-      } else {
-        navigation.replace("Login");
-      }
-    }, 2000);
-    return () => clearTimeout(timeout);
-  }, [user]);
+    if (!isLoading) {
+      const timeout = setTimeout(() => {
+        if (user) {
+          navigation.replace("MainTabs");
+        } else {
+          navigation.replace("Login");
+        }
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [user, isLoading]);
 
   return (
-    <LinearGradient
-      colors={["#f5f7ff", "#e8ecff", "#dce2ff"]}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.content}>
         <Image source={Logo} style={styles.logo} resizeMode="contain" />
         <Text style={styles.appName}>Karisma Arga</Text>
-        <ActivityIndicator size="large" color="#4a7cff" style={styles.loader} />
-        <Text style={styles.tagline}>Loading your experience...</Text>
+        <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
+        <Text style={styles.tagline}>
+          {isLoading
+            ? "Checking authentication..."
+            : "Loading your experience..."}
+        </Text>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 

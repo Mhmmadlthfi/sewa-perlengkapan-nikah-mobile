@@ -1,28 +1,57 @@
 import React, { useContext } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AuthContext } from "../contexts/AuthContext";
-
 import {
   SplashScreen,
   LoginScreen,
   RegisterScreen,
-  HomeScreen,
+  ProductDetailScreen,
+  OrderDetailScreen,
 } from "../screens";
+import TabNavigator from "./TabNavigator";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const { user } = useContext(AuthContext);
+  const { user, isLoading } = useContext(AuthContext);
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      {user ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
-      ) : (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+      }}
+    >
+      {!user ? (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="MainTabs" component={TabNavigator} />
+          <Stack.Screen
+            name="ProductDetail"
+            component={ProductDetailScreen}
+            options={{
+              headerShown: true,
+              title: "Detail Produk",
+              headerBackTitle: "Kembali",
+            }}
+          />
+          <Stack.Screen
+            name="OrderDetail"
+            component={OrderDetailScreen}
+            options={{
+              headerShown: true,
+              title: "Detail Pesanan",
+              headerBackTitle: "Kembali",
+            }}
+          />
         </>
       )}
     </Stack.Navigator>
