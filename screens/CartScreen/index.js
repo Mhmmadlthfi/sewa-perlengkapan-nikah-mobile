@@ -161,10 +161,9 @@ const CartScreen = ({ navigation }) => {
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.itemPrice}>
           Rp{parseFloat(item.price).toLocaleString("id-ID")}{" "}
-          {/* Hanya tampilkan harga dasar */}
         </Text>
         <Text style={styles.itemUnit}>
-          {item.unit} (x{item.quantity}) {/* Tampilkan quantity di sini */}
+          {item.unit} (x{item.quantity})
         </Text>
       </View>
 
