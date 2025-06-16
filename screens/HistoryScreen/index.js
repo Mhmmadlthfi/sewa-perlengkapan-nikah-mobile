@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import { HistoryCard } from "../../components";
 import { AuthContext } from "../../contexts/AuthContext";
