@@ -5,21 +5,18 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Linking,
-  TouchableOpacity,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 import {
   getStatusColor,
   getPaymentStatusColor,
   formatStatusText,
 } from "../../src/utils";
 import api from "../../services/api";
-import { NO_WA_OWNER } from "../../src/config";
-import { OrderItem } from "../../components";
+import OrderItem from "../../components/OrderItem";
 
-export default function OrderDetailScreen({ route }) {
+export default function OrderDetailScreen({ route, navigation }) {
   const { orderId } = route.params;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -52,19 +49,8 @@ export default function OrderDetailScreen({ route }) {
   };
 
   const formatCurrency = (amount) => {
-    return `Rp${parseInt(amount).toLocaleString("id-ID")}`;
-  };
-
-  const handleContactSeller = () => {
-    const phoneNumber = NO_WA_OWNER;
-    const message = `Halo, saya ingin menanyakan tentang order ID ${order.id}`;
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      message
-    )}`;
-
-    Linking.openURL(url).catch(() => {
-      alert("Tidak dapat membuka WhatsApp");
-    });
+    const value = Math.round(Number(amount) || 0);
+    return `Rp${value.toLocaleString("id-ID")}`;
   };
 
   const handleRefresh = async () => {
@@ -78,6 +64,52 @@ export default function OrderDetailScreen({ route }) {
       console.error("Refresh error:", err);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const itemsTotal = (
+    order && Array.isArray(order.items) ? order.items : []
+  ).reduce((sum, it) => {
+    const price = Number(it.price) || 0;
+    const qty = Number(it.quantity) || 0;
+    return sum + price * qty;
+  }, 0);
+
+  const handleContinuePayment = async () => {
+    try {
+      const check = await api.get(`/orders/${orderId}/check-payment-status`);
+
+      if (check.data.status === "paid") {
+        Alert.alert("Sudah Dibayar", "Pesanan ini sudah dibayar.");
+        return;
+      }
+
+      if (check.data.status === "expired") {
+        // regenerate token otomatis
+        const regen = await api.post(`/orders/${orderId}/regenerate-snap`);
+        if (regen.data.success) {
+          navigation.navigate("PaymentScreen", {
+            snapToken: regen.data.snap_token,
+            orderId: order.id,
+          });
+        } else {
+          Alert.alert("Gagal", "Tidak bisa membuat token baru.");
+        }
+        return;
+      }
+
+      if (order.snap_token) {
+        navigation.navigate("PaymentScreen", {
+          snapToken: order.snap_token,
+          orderId: order.id,
+        });
+        return;
+      }
+
+      Alert.alert("Token Tidak Tersedia", "Silakan hubungi admin.");
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "Terjadi kesalahan, coba lagi.");
     }
   };
 
@@ -122,7 +154,7 @@ export default function OrderDetailScreen({ route }) {
         <Text style={styles.sectionTitle}>Informasi Order</Text>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>ID Order</Text>
-          <Text style={styles.detailValue}>{order.id}</Text>
+          <Text style={styles.detailValue}>{order.order_code}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Tanggal Order</Text>
@@ -188,36 +220,35 @@ export default function OrderDetailScreen({ route }) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ringkasan Pembayaran</Text>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Total Harga</Text>
-          <Text style={styles.detailValue}>
-            {formatCurrency(order.total_price)}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Biaya Pengiriman</Text>
-          <Text style={styles.detailValue}>
-            {formatCurrency(order.delivery_fee)}
-          </Text>
-        </View>
-        <View style={[styles.detailRow, styles.totalRow]}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>
-            {formatCurrency(
-              parseInt(order.total_price) + parseInt(order.delivery_fee)
-            )}
+        <Text style={styles.sectionTitle}>Total Harga</Text>
+        <View style={styles.totalCenter}>
+          <Text style={styles.totalAmountLarge}>
+            {formatCurrency(itemsTotal)}
           </Text>
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.contactButton}
-        onPress={handleContactSeller}
-      >
-        <MaterialIcons name="chat" size={20} color="#fff" />
-        <Text style={styles.contactButtonText}>Hubungi Penjual</Text>
-      </TouchableOpacity>
+      {/* Tombol bayar: tampilkan hanya kalau masih bisa dibayar */}
+      {["pending", "deny"].includes(order.payment_status) && (
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.payButton}
+            onPress={handleContinuePayment}
+          >
+            <Text style={styles.payButtonText}>Lanjutkan Pembayaran</Text>
+          </TouchableOpacity>
+          <Text
+            style={{
+              textAlign: "center",
+              color: "#666",
+              marginTop: 8,
+              fontSize: 12,
+            }}
+          >
+            Pastikan menyelesaikan pembayaran sebelum batas waktu berakhir.
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -276,37 +307,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textTransform: "capitalize",
   },
-  totalRow: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  totalValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#4CAF50",
-  },
-  contactButton: {
-    backgroundColor: "#4CAF50",
-    borderRadius: 8,
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  contactButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-    marginLeft: 8,
-  },
   errorText: {
     textAlign: "center",
     fontSize: 16,
@@ -323,5 +323,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#666",
     paddingVertical: 12,
+  },
+  totalSection: {
+    paddingTop: 8,
+  },
+  totalAmountLarge: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#4CAF50",
+  },
+  totalCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
+  payButton: {
+    backgroundColor: "#FF9800",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  payButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
   },
 });

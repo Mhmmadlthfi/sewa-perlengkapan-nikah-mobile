@@ -7,6 +7,7 @@ import HistoryScreen from "./HistoryScreen";
 import ProfileScreen from "./ProfileScreen";
 import ProductDetailScreen from "./ProductDetailScreen";
 import OrderDetailScreen from "./OrderDetailScreen";
+import PaymentScreen from "./PaymentScreen";
 
 export {
   SplashScreen,
@@ -18,4 +19,5 @@ export {
   ProfileScreen,
   ProductDetailScreen,
   OrderDetailScreen,
+  PaymentScreen,
 };

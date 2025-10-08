@@ -7,6 +7,7 @@ import {
   RegisterScreen,
   ProductDetailScreen,
   OrderDetailScreen,
+  PaymentScreen,
 } from "../screens";
 import TabNavigator from "./TabNavigator";
 
@@ -34,6 +35,15 @@ export default function AppNavigator() {
       ) : (
         <>
           <Stack.Screen name="MainTabs" component={TabNavigator} />
+          <Stack.Screen
+            name="PaymentScreen"
+            component={PaymentScreen}
+            options={{
+              headerShown: true,
+              title: "Pembayaran",
+              headerBackTitle: "Kembali",
+            }}
+          />
           <Stack.Screen
             name="ProductDetail"
             component={ProductDetailScreen}

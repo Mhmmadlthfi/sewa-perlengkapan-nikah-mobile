@@ -10,13 +10,17 @@ const HistoryCard = ({ order, onPress }) => {
   };
 
   const formatCurrency = (amount) => {
-    return `Rp${parseInt(amount).toLocaleString("id-ID")}`;
+    const value = Number(amount) || 0;
+    return `Rp${value.toLocaleString("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    })}`;
   };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardHeader}>
-        <Text style={styles.orderId}>Order ID: {order.id}</Text>
+        <Text style={styles.orderId}>{order.order_code}</Text>
         <Text style={styles.orderDate}>{formatDate(order.order_date)}</Text>
       </View>
 
@@ -50,9 +54,7 @@ const HistoryCard = ({ order, onPress }) => {
 
       <View style={styles.cardFooter}>
         <Text style={styles.totalText}>
-          {formatCurrency(
-            parseInt(order.total_price) + parseInt(order.delivery_fee)
-          )}
+          {formatCurrency(order.total_price)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   orderId: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#333",
   },

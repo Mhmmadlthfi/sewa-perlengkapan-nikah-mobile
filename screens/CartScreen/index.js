@@ -9,14 +9,12 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  Linking,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useCart } from "../../contexts/CartContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../../services/api";
-import { NO_WA_OWNER } from "../../src/config";
 
 const CartScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
@@ -69,6 +67,14 @@ const CartScreen = ({ navigation }) => {
   };
 
   const handleSubmitOrder = async () => {
+    if (cartItems.length === 0) {
+      Alert.alert(
+        "Keranjang kosong",
+        "Tambahkan produk sebelum membuat pesanan."
+      );
+      return;
+    }
+
     if (!address) {
       Alert.alert("Error", "Alamat pengiriman harus diisi");
       return;
@@ -105,14 +111,22 @@ const CartScreen = ({ navigation }) => {
       const response = await api.post("/rental-orders", orderData);
 
       if (response.data.success) {
-        const whatsappUrl = generateWhatsAppLink(orderData);
+        const { snap_token, order_id, order_code, total_price } = response.data;
 
-        Linking.openURL(whatsappUrl).catch(() => {
-          Alert.alert("Error", "Tidak dapat membuka WhatsApp");
-        });
-
-        clearCart();
-        navigation.navigate("History");
+        if (snap_token) {
+          navigation.navigate("PaymentScreen", {
+            snapToken: snap_token,
+            orderId: order_id,
+            orderCode: order_code,
+            totalPrice: total_price,
+          });
+        } else {
+          Alert.alert(
+            "Error",
+            response.data.message ||
+              "Pesanan dibuat tapi token pembayaran tidak tersedia"
+          );
+        }
       } else {
         Alert.alert("Error", response.data.message || "Terjadi kesalahan");
       }
@@ -126,33 +140,6 @@ const CartScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateWhatsAppLink = (orderData) => {
-    const recipientPhone = NO_WA_OWNER;
-
-    let message = `Halo, saya ingin melakukan pemesanan:\n\n`;
-    message += `Nama: ${user.name}\n`;
-    message += `No Telepon: ${user.phone}\n`;
-    message += `Email: ${user.email}\n`;
-    message += `Alamat: ${orderData.address}\n`;
-    message += `Tanggal sewa: ${orderData.rental_start} s/d ${orderData.rental_end}\n\n`;
-    message += `Pesanan:\n`;
-
-    cartItems.forEach((item) => {
-      const subtotal = parseFloat(item.price) * item.quantity;
-      message += `- ${item.name} | Rp${parseFloat(item.price).toLocaleString(
-        "id-ID"
-      )} x ${item.quantity} = Rp${subtotal.toLocaleString("id-ID")}\n`;
-    });
-
-    message += `\nTotal: Rp${totalPrice.toLocaleString("id-ID")}\n`;
-    message += `\nCatatan: ${orderData.notes || "-"}\n`;
-    message += `\nTerima kasih.`;
-
-    return `https://wa.me/${recipientPhone}?text=${encodeURIComponent(
-      message
-    )}`;
   };
 
   const renderItem = ({ item }) => (
