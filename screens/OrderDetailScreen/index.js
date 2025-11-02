@@ -77,36 +77,46 @@ export default function OrderDetailScreen({ route, navigation }) {
 
   const handleContinuePayment = async () => {
     try {
-      const check = await api.get(`/orders/${orderId}/check-payment-status`);
+      const check = await api.post(`/orders/${orderId}/check-payment-status`);
 
       if (check.data.status === "paid") {
         Alert.alert("Sudah Dibayar", "Pesanan ini sudah dibayar.");
         return;
       }
 
+      // HANYA regenerate jika expired dan konfirmasi user
       if (check.data.status === "expired") {
-        // regenerate token otomatis
-        const regen = await api.post(`/orders/${orderId}/regenerate-snap`);
-        if (regen.data.success) {
-          navigation.navigate("PaymentScreen", {
-            snapToken: regen.data.snap_token,
-            orderId: order.id,
-          });
-        } else {
-          Alert.alert("Gagal", "Tidak bisa membuat token baru.");
-        }
+        Alert.alert(
+          "Token Kadaluarsa",
+          "Token pembayaran sudah kadaluarsa. Buat token baru?",
+          [
+            { text: "Batal", style: "cancel" },
+            {
+              text: "Buat Baru",
+              onPress: async () => {
+                const regen = await api.post(
+                  `/orders/${orderId}/regenerate-snap`
+                );
+                if (regen.data.success) {
+                  navigation.navigate("PaymentScreen", {
+                    snapToken: regen.data.snap_token,
+                    orderId: order.id,
+                  });
+                }
+              },
+            },
+          ]
+        );
         return;
       }
 
+      // Untuk status pending, cancel, deny - gunakan token existing
       if (order.snap_token) {
         navigation.navigate("PaymentScreen", {
-          snapToken: order.snap_token,
+          snapToken: order.snap_token, // ✅ Pakai token existing
           orderId: order.id,
         });
-        return;
       }
-
-      Alert.alert("Token Tidak Tersedia", "Silakan hubungi admin.");
     } catch (error) {
       console.error("Error:", error);
       Alert.alert("Error", "Terjadi kesalahan, coba lagi.");

@@ -43,7 +43,7 @@ export default function PaymentScreen({ route, navigation }) {
     try {
       setLoadingRegenerate(true);
       const response = await api.post(`/orders/${orderId}/regenerate-snap`);
-      if (response.data?.snap_token) {
+      if (response.data?.success && response.data.snap_token) {
         setCurrentSnapToken(response.data.snap_token);
         handledRef.current = false;
         Alert.alert(
@@ -53,16 +53,16 @@ export default function PaymentScreen({ route, navigation }) {
       } else {
         Alert.alert(
           "Gagal Memperbarui Token",
-          "Token tidak tersedia, coba ulangi nanti."
+          response.data?.message || "Token tidak tersedia, coba ulangi nanti."
         );
         navigation.goBack();
       }
     } catch (err) {
       console.error("regenerateToken error", err);
-      Alert.alert(
-        "Gagal Memperbarui Token",
-        "Terjadi kesalahan saat memperbarui token."
-      );
+      const errorMessage =
+        err.response?.data?.message ||
+        "Terjadi kesalahan saat memperbarui token.";
+      Alert.alert("Gagal Memperbarui Token", errorMessage);
       navigation.goBack();
     } finally {
       setLoadingRegenerate(false);

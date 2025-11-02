@@ -3,12 +3,12 @@
 // ====================================
 
 // Development (local)
-// export const BASE_API_URL = "http://192.168.43.205:8000/api";
-// export const BASE_STORAGE_URL = "http://192.168.43.205:8000/storage";
+export const BASE_API_URL = "http://192.168.43.205:8000/api";
+export const BASE_STORAGE_URL = "http://192.168.43.205:8000/storage";
 
 // Production (server)
-export const BASE_API_URL = "https://amalia-hanifah.unitech.my.id/api";
-export const BASE_STORAGE_URL = "https://amalia-hanifah.unitech.my.id/storage";
+// export const BASE_API_URL = "https://amalia-hanifah.unitech.my.id/api";
+// export const BASE_STORAGE_URL = "https://amalia-hanifah.unitech.my.id/storage";
 // ====================================
 // 💳 Midtrans Configuration
 // ====================================
