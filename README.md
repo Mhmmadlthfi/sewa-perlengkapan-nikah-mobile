@@ -1,6 +1,6 @@
 # 📱 Aplikasi Sewa Perlengkapan Resepsi Pernikahan
 
-Aplikasi ini merupakan aplikasi mobile berbasis **Android** yang digunakan oleh klien untuk melakukan pemesanan (booking) penyewaan perlengkapan resepsi pernikahan pada **Karisma Arga**.  
+Aplikasi ini merupakan aplikasi mobile berbasis **Android** yang digunakan oleh klien untuk melakukan pemesanan (booking) penyewaan perlengkapan resepsi pernikahan.  
 Aplikasi dikembangkan menggunakan teknologi **React Native** dengan bantuan **Expo**.
 
 ---
